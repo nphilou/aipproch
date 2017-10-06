@@ -31,8 +31,8 @@ public class Problem<State extends Searchable<State, Action>, Action> {
             for (Action action : currentState.getActions()) {
                 System.out.println("new : \n" + currentState.execute(action));
                 if (!visited.contains(currentState.execute(action))) {
-                    //System.out.println("visited don't contain nextState");
-                    //System.out.println("-------------------------------");
+                    System.out.println("visited don't contain nextState");
+                    System.out.println("-------------------------------");
                     newStates.add(currentState.execute(action));
                     if (goal_test(currentState.execute(action))) {
                         return;
@@ -91,7 +91,10 @@ public class Problem<State extends Searchable<State, Action>, Action> {
 
     public int aStar(Function<State, Double> g, Function<State, Double> h) {
         // Hell no
+        /*
+        g : return getGvalue
+        h : heuristique, renvoie la somme des distances par rapport à la "bonne position"
+         */
         return 0;
     }
-
 }
