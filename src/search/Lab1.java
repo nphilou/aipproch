@@ -50,17 +50,20 @@ public class Lab1 {
 
                     // run BFS
                     long startTime = System.nanoTime();
-                    int nb = eightpuzzle.bfs();
+                    int nb = eightpuzzle.aStar(eightpuzzle.g, eightpuzzle.h);
                     long finishTime = System.nanoTime();
                     runTimesBFS.add(finishTime - startTime);
                     visitedBFS.add(nb);
 
                     // run DFS
                     startTime = System.nanoTime();
-                    nb = eightpuzzle.dfs();
+                    // nb = eightpuzzle.dfs();
+                    nb = 0;
                     finishTime = System.nanoTime();
                     runTimesDFS.add(finishTime - startTime);
                     visitedDFS.add(nb);
+
+                    //eightpuzzle.aStar(eightpuzzle.g, eightpuzzle.h);
 
                 }
                 line = reader.readLine();

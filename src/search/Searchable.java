@@ -69,5 +69,7 @@ public interface Searchable<State, Action> extends Comparable<Searchable<State,A
      * @return the depth of the node in the search tree
 	 */
 	public int depth();
+
+	public String getDesc();
 	
 }

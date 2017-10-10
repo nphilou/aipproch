@@ -3,6 +3,8 @@ package search;
 import java.util.*;
 import java.util.function.Function;
 
+import static java.lang.StrictMath.abs;
+
 
 public class Problem<State extends Searchable<State, Action>, Action> {
 
@@ -89,12 +91,64 @@ public class Problem<State extends Searchable<State, Action>, Action> {
         return visited.size();
     }
 
+    private Double go(State state) {
+        return (double) state.getValueG() + 1;
+    }
+
+    private Double hey(State state) {
+        Double res = 0d;
+        for (int i = 0; i < 9; i++) {
+            res += abs((state.getDesc().charAt(i) % 3) -
+                    (finalState.getDesc().charAt(i) % 3)) +
+                    abs((int) (state.getDesc().charAt(i) / 3)
+                            - (int) finalState.getDesc().charAt(i) / 3);
+        }
+        return res;
+    }
+
+    Function<State, Double> g = this::go;
+    Function<State, Double> h = this::hey;
+
+
     public int aStar(Function<State, Double> g, Function<State, Double> h) {
-        // Hell no
-        /*
-        g : return getGvalue
-        h : heuristique, renvoie la somme des distances par rapport à la "bonne position"
-         */
-        return 0;
+        ArrayList<State> visited = new ArrayList<>();
+        initialState.setValueH(h.apply(initialState));
+        initialState.setValueG(0);
+
+        System.out.println("initialState = " + initialState);
+
+        visited.add(initialState);
+
+        State min = initialState;
+        int minPosition = 0;
+        int count = 0;
+
+        while (!visited.contains(finalState)) {
+            for (int i = 0; i < visited.size(); i++) {
+                if (visited.get(i).getHeuristic() + visited.get(i).getValueG() <
+                        min.getHeuristic() + min.getValueG()) {
+                    min = visited.get(i);
+                    minPosition = i;
+                }
+            }
+            for (Action action : min.getActions()) {
+                if (!visited.contains(min.execute(action))) {
+                    visited.add(min.execute(action));
+                    visited.get(visited.size() - 1).setValueH(h.apply(visited.get(visited.size() - 1)));
+                    visited.get(visited.size() - 1).setValueG(g.apply(min));
+                    count++;
+
+                    if (goal_test(min.execute(action))) {
+                        break;
+                    }
+                }
+            }
+            visited.remove(minPosition);
+            min = visited.get(0);
+            minPosition = 0;
+        }
+
+        System.out.println("A* = " + visited.size());
+        return count;
     }
 }
