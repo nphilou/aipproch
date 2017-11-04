@@ -25,7 +25,7 @@ public class Lab2 {
 		int milli = 1000000;
 		
 		try{
-			reader = new BufferedReader(new FileReader("taquin-f.txt"));
+			reader = new BufferedReader(new FileReader("games.txt"));
 			writer = new BufferedWriter(new FileWriter("results.csv"));
 			writer.write("Size;\"avg time H1\";\"std\";\"states visited H1\";\"std \";");
 			writer.write("\"avg time H2\";\"std\";\"states visited H2\";\" std\"\n");

@@ -136,6 +136,7 @@ public class Problem<State extends Searchable<State, Action>, Action> {
                     visited.add(min.execute(action));
                     visited.get(visited.size() - 1).setValueH(h.apply(visited.get(visited.size() - 1)));
                     visited.get(visited.size() - 1).setValueG(g.apply(min));
+                    visited.get(visited.size() - 1).setPredecessor(min);
                     count++;
 
                     if (goal_test(min.execute(action))) {

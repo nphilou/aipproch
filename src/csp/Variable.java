@@ -110,7 +110,7 @@ public class Variable<D> {
 	 * @param value
 	 */
 	public void setValue(D value) {
-		System.out.println("value = " + value);
+		//System.out.println("value = " + value);
 		isAssigned = true;
 		this.value = value;
 		possibleValues.clear();
@@ -137,9 +137,7 @@ public class Variable<D> {
 		index = numVariables;
 		numVariables++;
 		possibleValues = new ArrayList<D>();
-		for (D val : domain) {
-			possibleValues.add(val);
-		}
+		possibleValues.addAll(domain);
 	}
 
 	/**
@@ -148,8 +146,7 @@ public class Variable<D> {
 	 */
 	void resetPossibleValues() {
 		possibleValues.clear();
-		for (D val : domain)
-			possibleValues.add(val);
+		possibleValues.addAll(domain);
 	}
 
 	/**
@@ -159,8 +156,7 @@ public class Variable<D> {
 	 */
 	void resetPossibleValues(List<D> lval) {
 		possibleValues.clear();
-		for (D val : lval)
-			possibleValues.add(val);
+		possibleValues.addAll(lval);
 	}
 
 	/**
@@ -177,8 +173,8 @@ public class Variable<D> {
 	 *
 	 * @param val the value that is to be removed from the set of possible values
 	 */
-	public void removePossibleValue(D val) {
-		possibleValues.remove(val);
+	public boolean removePossibleValue(D val) {
+		return possibleValues.remove(val);
 	}
 
 	/**
@@ -201,12 +197,7 @@ public class Variable<D> {
 	 * @return true when the value does not violate any constraint.
 	 */
 	public boolean satisfies(D val) {
-		Iterator<D> it = possibleValues.iterator();
-		while (it.hasNext()) {
-			if (!it.next().equals(val))
-				return true;
-		}
-		return false;
+		return possibleValues.stream().anyMatch(possibleValue -> !possibleValue.equals(val));
 	}
 
 	/**

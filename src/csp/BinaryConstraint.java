@@ -76,7 +76,7 @@ public class BinaryConstraint<D> {
 	 */
 	@Override public String toString(){
 		//return "(" + x.getName() +"[" + x.getValue() +"]" + "≠" + y.getName() +"[" + y.getValue() +"])";
-		return "(" + x + " ≠ " + y + ")\n";
+		return "(" + x + " ≠ " + y + ")";
 	}
 	
 	/**
@@ -97,7 +97,6 @@ public class BinaryConstraint<D> {
 	 * @param var one variable
 	 * @return true if var is either x or y
 	 */
-	
 	public boolean concerns(Variable<D> var){
 		return x.equals(var) || y.equals(var);
 	}

@@ -68,7 +68,7 @@ public class GraphColouring extends BinaryCSP<Integer> {
 	}
 
 	public static void main(String[] args) {
-		GraphColouring gc = new GraphColouring("gc.txt");
+		GraphColouring gc = new GraphColouring("src/csp/gc.txt");
 		System.out.println("Problem to solve: " + gc.constraints.size() + " constraints");
 		//System.out.println(gc);
 		boolean cont = true;

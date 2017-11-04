@@ -34,7 +34,7 @@ public class Sudoku extends BinaryCSP<Digit> {
 			}
 		}
 
-		System.out.println("vars = " + vars);
+		//System.out.println("vars = " + vars);
 
 		//Adding the constraints
 		List<BinaryConstraint<Digit>> lcons;
@@ -126,7 +126,7 @@ public class Sudoku extends BinaryCSP<Digit> {
 			}
 		}
 
-		System.out.println("constraints = " + constraints);
+		//System.out.println("constraints = " + constraints);
 		System.out.println(this);
 	}
 
@@ -255,7 +255,9 @@ public class Sudoku extends BinaryCSP<Digit> {
 			start = System.currentTimeMillis();
 
 			if (!sudoku.forwardCheck())
-				System.out.println("failure!");
+				System.out.println("failure fc!");
+
+			System.out.println("\n" + sudoku);
 
 			finish = System.currentTimeMillis();
 			res[0] = (finish - start);
