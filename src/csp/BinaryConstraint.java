@@ -26,7 +26,7 @@ public class BinaryConstraint<D> {
 	 * @param x first variable
 	 * @param y second variable
 	 */
-	public BinaryConstraint(Variable<D> x, Variable<D> y){
+	BinaryConstraint(Variable<D> x, Variable<D> y){
 		this.x = x;
 		this.y = y;
 	}
@@ -37,7 +37,7 @@ public class BinaryConstraint<D> {
 	 * @param vars are the variable that are part of this alldiff constraint
 	 * @return a set of binary constraints
 	 */
-	public static <D> List<BinaryConstraint<D>> alldiff(Variable<D>... vars){
+	static <D> List<BinaryConstraint<D>> alldiff(Variable<D>... vars){
 		List<BinaryConstraint<D>> cons = new LinkedList<BinaryConstraint<D>>();
 		for (Variable<D> x: vars){
 			for (Variable<D> y: vars){
@@ -57,7 +57,7 @@ public class BinaryConstraint<D> {
 	 * @param lvars are the variable that are part of this alldiff constraint
 	 * @return a set of binary constraints
 	 */
-	public static <D> List<BinaryConstraint<D>> alldiff(List<Variable<D>> lvars){
+	static <D> List<BinaryConstraint<D>> alldiff(List<Variable<D>> lvars){
 		List<BinaryConstraint<D>> cons = new LinkedList<BinaryConstraint<D>>();
 		for (Variable<D> x: lvars){
 			for (Variable<D> y: lvars){
@@ -83,13 +83,13 @@ public class BinaryConstraint<D> {
 	 * 
 	 * @return the first variable of the binary constraint
 	 */
-	public Variable<D> getX(){return x;}
+	Variable<D> getX(){return x;}
 	
 	/**
 	 * 
 	 * @return the second variable of the binary constraint
 	 */
-	public Variable<D> getY(){return y;}
+	Variable<D> getY(){return y;}
 	
 	/**
 	 * This methods tells whether a variable <code>var</code> is a member of the binary constraint.
@@ -97,7 +97,7 @@ public class BinaryConstraint<D> {
 	 * @param var one variable
 	 * @return true if var is either x or y
 	 */
-	public boolean concerns(Variable<D> var){
+	boolean concerns(Variable<D> var){
 		return x.equals(var) || y.equals(var);
 	}
 	
@@ -107,7 +107,7 @@ public class BinaryConstraint<D> {
 	 * @param var is one of the variable in this binary constraint
 	 * @return if var is x, it returns y, and otherwise, var should be y and the method returns x
 	 */
-	public Variable<D> depends(Variable<D> var){
+	Variable<D> depends(Variable<D> var){
 		if (var.equals(x))
 			return y;
 		if (var.equals(y))
@@ -115,5 +115,8 @@ public class BinaryConstraint<D> {
 		System.out.println("var " + var.getName() + "does not depends on " + x.getName() + " nor " + y.getName());
 		return null;
 	}
+
+
+
 	
 }

@@ -1,236 +1,151 @@
 package csp;
 
-
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public class BinaryCSP<D> {
+class BinaryCSP<D> {
 
-	List<Variable<D>> vars;
-	List<BinaryConstraint<D>> constraints;
+  List<Variable<D>> vars;
+  List<BinaryConstraint<D>> constraints;
 
-	public BinaryCSP() {
-		vars = new LinkedList<Variable<D>>();
-		constraints = new LinkedList<BinaryConstraint<D>>();
-	}
+  BinaryCSP() {
+    vars = new LinkedList<>();
+    constraints = new LinkedList<>();
+  }
 
-	public boolean ac3() {
-		while (!constraints.isEmpty()) {
-			BinaryConstraint<D> constraint = constraints.get(0);
-			if (revise(constraint)) {
-				if (constraint.getX().getPossibleValues().isEmpty()) {
-					return false;
-				} else {
-					this.constraints.stream().filter(bc ->
-									bc.concerns(constraint.getX()) &&
-													!bc.depends(constraint.getX()).isAssigned() &&
-													(bc.depends(constraint.getX()) != constraint.getY())
-					).forEach(this.constraints::add);
-				}
-			}
-		}
-		return true;
-	}
+  // Make all constraints arc consistent
+  private boolean ac3() {
+    LinkedList<BinaryConstraint<D>> queue = new LinkedList<>(constraints);
+    LinkedList<BinaryConstraint<D>> temp = new LinkedList<>();
 
-	// Make a constraint arc consistent
-	public boolean revise(BinaryConstraint<D> c) {
-		// modifier uniquement la partie non assignée
-		return c.getY().getPossibleValues().stream().anyMatch(value ->
-						c.getX().removePossibleValue(value) && !c.getX().isAssigned());
+    while (!queue.isEmpty()) {
+      BinaryConstraint<D> constraint = queue.pop();
 
-		//c.getY().getPossibleValues().forEach(value -> c.getX().removePossibleValue(value));
-		// c.getX().getPossibleValues().forEach(value -> c.getY().removePossibleValue(value));
-		//System.out.println("c = " + c);
-		//return true;
-	}
+      if (revise(constraint)) {
+        if (constraint.getX().getPossibleValues().isEmpty()) {
+          return false;
+        } else {
+          queue.stream().filter(bc -> bc.concerns(constraint.getX()) &&
+                  (bc.depends(constraint.getX()) != constraint.getY()))
+                  .forEach(bc -> temp.add(new BinaryConstraint<>(bc.getY(), bc.getX())));
 
-	public boolean initRevise(BinaryConstraint<D> c) {
-		//System.out.println("c = " + c);
-		if (c.getY().isAssigned() && c.getX().isAssigned()) {
-			return true;
-		} else if (c.getX().isAssigned()) {
-			//System.out.println("cx = " + c);
-			c.getX().getPossibleValues().forEach(value -> {
-				c.getY().removePossibleValue(value);
-				//System.out.println("c1 = " + c);
-			});
-			return (!c.getY().getPossibleValues().isEmpty());
-		} else if (c.getY().isAssigned()) {
-			c.getY().getPossibleValues().forEach(value -> {
-				c.getX().removePossibleValue(value);
-				//System.out.println("c2 = " + c);
-			});
-			return (!c.getX().getPossibleValues().isEmpty());
-		}
-		return true;
-	}
+          temp.forEach(queue::push);
+          temp.clear();
+        }
+      }
+    }
+    return true;
+  }
 
-	public boolean forwardCheckAC3() {
-		System.out.println("\nFORWARD CHECK");
-		init();
+  // Make the left part of a constraint arc consistent
+  private boolean revise(BinaryConstraint<D> c) {
+    return c.getX().getPossibleValues().removeIf(x -> !c.getY().satisfies(x) && !c.getX().isAssigned());
+  }
 
-		// first unaffected variable
-		Optional<Variable<D>> variableOptional =
-						this.vars.stream().filter(dVariable ->
-										!dVariable.isAssigned()).findFirst();
+  private boolean initRevise(BinaryConstraint<D> c) {
+    if (c.getY().isAssigned() && c.getX().isAssigned()) return true;
 
-		if (!variableOptional.isPresent()) {
-			return true;
-		} else {
-			Variable<D> variable = variableOptional.get();
+    c.getY().getPossibleValues().removeIf(val -> !c.getX().satisfies(val) && c.getX().isAssigned());
+    c.getX().getPossibleValues().removeIf(val -> !c.getY().satisfies(val) && c.getY().isAssigned());
 
-			System.out.println("unassigned variable = " + variable);
+    return (!c.getY().getPossibleValues().isEmpty() || !c.getX().getPossibleValues().isEmpty());
+  }
 
-			// possible values list
-			List<D> values = new LinkedList<>(variable.getPossibleValues());
+  boolean forwardCheckAC3() {
+    init();
 
-			System.out.println("values = " + values);
+    Optional<Variable<D>> variableOptional = this.vars.stream().filter(var -> !var.isAssigned()).findFirst();
 
-			// try each value
-			for (D value : values) {
-				System.out.println("value = " + value);
+    if (!variableOptional.isPresent()) {
+      return true;
+    } else {
+      Variable<D> variable = variableOptional.get();
 
-				// constraints concerning variable
-				Stream<BinaryConstraint<D>> constraintStream = this.constraints.stream()
-								.filter(binaryConstraint ->
-												binaryConstraint.concerns(variable));
+      List<D> values = new LinkedList<>(variable.getPossibleValues());
 
-				// value satisfies all constraints
-				if (this.constraints.stream()
-								.filter(binaryConstraint ->
-												binaryConstraint.concerns(variable)).allMatch(dBinaryConstraint ->
-												dBinaryConstraint.depends(variable).satisfies(value))) {
+      for (D value : values) {
 
-					variable.setValue(value);
+        if (this.constraints.stream().filter(bc -> bc.concerns(variable)).allMatch(bc ->
+                bc.depends(variable).satisfies(value))) {
 
-					System.out.println(variable.getName() + " takes the value of " + value);
+          variable.setValue(value);
 
-					// arc consistency check (revise ?)
-					/*constraintStream.forEach(dBinaryConstraint ->
-									dBinaryConstraint.depends(variable).removePossibleValue(value));
-*/
+          this.constraints.stream().filter(bc -> bc.concerns(variable))
+                  .forEach(bc -> bc.depends(variable).removePossibleValue(value));
 
-					ac3();
+          if (!ac3()) {
 
-					// doesn't work for all possible values
-					if (!this.forwardCheck()) {
-						variable.reset();
-						variable.resetPossibleValues(values);
+            variable.reset();
+            variable.resetPossibleValues(values);
+            this.vars.stream().filter(x -> !x.isAssigned).forEach(Variable::reset);
+            init();
 
-						// constraints reset
-						this.constraints.stream().filter(bc ->
-										bc.concerns(variable) && !bc.depends(variable).isAssigned() &&
-														!bc.depends(variable).getPossibleValues().contains(value))
-										.forEach(bc -> bc.depends(variable).addPossibleValue(value));
-					}
-				} else {
-					this.constraints.stream().filter(binaryConstraint ->
-									binaryConstraint.concerns(variable)).filter(dBinaryConstraint ->
-									!dBinaryConstraint.depends(variable).satisfies(value)).forEach(System.out::println);
-				}
+          } else if (!this.forwardCheck()) {
 
-				variableOptional = this.vars.stream().filter(dVariable ->
-								!dVariable.isAssigned()).findFirst();
+            variable.reset();
+            variable.resetPossibleValues(values);
+            this.constraints.stream().filter(bc -> bc.concerns(variable) && !bc.depends(variable).isAssigned() &&
+                    !bc.depends(variable).getPossibleValues().contains(value))
+                    .forEach(bc -> bc.depends(variable).reset());
+            init();
+          }
+        }
 
-				// finish
-				if (!variableOptional.isPresent()) return true;
-			}
-		}
-		return false;
-	}
+        variableOptional = this.vars.stream().filter(var -> !var.isAssigned()).findFirst();
+        if (!variableOptional.isPresent()) return true;
+      }
+    }
+    return false;
+  }
 
+  boolean forwardCheck() {
+    init();
 
-	/*
-	si l’affectation a est complète alors retourne a
-	var ← variable suivante non affectée
-	Pour toutes valeurs val ∈ D(var)
-		si {var=val} ne viole aucune contrainte
-			a = a ∪ {var=val}
-			pour toutes variables v connectée à var
-				verifier arc-cohérence de var et v
-				result ← Backtrack(net, a)
-				si result ̸= échec
-					retourne result
-				sinon retourne échec
-	 */
-	public boolean forwardCheck() {
-		System.out.println("\nFORWARD CHECK");
-		init();
+    Optional<Variable<D>> variableOptional = this.vars.stream().filter(var -> !var.isAssigned()).findFirst();
 
-		// first unaffected variable
-		Optional<Variable<D>> variableOptional =
-						this.vars.stream().filter(dVariable ->
-										!dVariable.isAssigned()).findFirst();
+    if (!variableOptional.isPresent()) {
+      return true;
+    } else {
+      Variable<D> variable = variableOptional.get();
 
-		if (!variableOptional.isPresent()) {
-			return true;
-		} else {
-			Variable<D> variable = variableOptional.get();
+      List<D> values = new LinkedList<>(variable.getPossibleValues());
 
-			System.out.println("unassigned variable = " + variable);
+      for (D value : values) {
 
-			// possible values list
-			List<D> values = new LinkedList<>(variable.getPossibleValues());
+        if (this.constraints.stream().filter(bc -> bc.concerns(variable))
+                .allMatch(bc -> bc.depends(variable).satisfies(value))) {
 
-			System.out.println("values = " + values);
+          variable.setValue(value);
 
-			// try each value
-			for (D value : values) {
-				System.out.println("value = " + value);
+          this.constraints.stream().filter(bc -> bc.concerns(variable)).forEach(bc ->
+                  bc.depends(variable).removePossibleValue(value));
 
-				// constraints concerning variable
-				Stream<BinaryConstraint<D>> constraintStream = this.constraints.stream()
-								.filter(binaryConstraint ->
-												binaryConstraint.concerns(variable));
+          if (!this.forwardCheck()) {
+            variable.reset();
+            variable.resetPossibleValues(values);
+            this.constraints.stream().filter(bc -> bc.concerns(variable) && !bc.depends(variable).isAssigned() &&
+                    !bc.depends(variable).getPossibleValues().contains(value))
+                    .forEach(bc -> bc.depends(variable).addPossibleValue(value));
+          }
+        }
 
-				// value satisfies all constraints
-				if (this.constraints.stream()
-								.filter(binaryConstraint ->
-												binaryConstraint.concerns(variable)).allMatch(dBinaryConstraint ->
-												dBinaryConstraint.depends(variable).satisfies(value))) {
+        /*else {
+          this.constraints.stream().filter(binaryConstraint ->
+                  binaryConstraint.concerns(variable)).filter(dBinaryConstraint ->
+                  !dBinaryConstraint.depends(variable).satisfies(value)).forEach(System.out::println);
+        }*/
 
-					variable.setValue(value);
+        variableOptional = this.vars.stream().filter(var -> !var.isAssigned()).findFirst();
+        if (!variableOptional.isPresent()) return true;
+      }
+    }
+    return false;
+  }
 
-					System.out.println(variable.getName() + " takes the value of " + value);
-
-					// arc consistency check (revise ?)
-					constraintStream.forEach(dBinaryConstraint ->
-									dBinaryConstraint.depends(variable).removePossibleValue(value));
-
-					// doesn't work for all possible values
-					if (!this.forwardCheck()) {
-						variable.reset();
-						variable.resetPossibleValues(values);
-
-						// constraints reset
-						this.constraints.stream().filter(bc ->
-										bc.concerns(variable) && !bc.depends(variable).isAssigned() &&
-														!bc.depends(variable).getPossibleValues().contains(value))
-										.forEach(bc -> bc.depends(variable).addPossibleValue(value));
-					}
-				} else {
-					this.constraints.stream().filter(binaryConstraint ->
-									binaryConstraint.concerns(variable)).filter(dBinaryConstraint ->
-									!dBinaryConstraint.depends(variable).satisfies(value)).forEach(System.out::println);
-				}
-
-				variableOptional = this.vars.stream().filter(dVariable ->
-								!dVariable.isAssigned()).findFirst();
-
-				// finish
-				if (!variableOptional.isPresent()) return true;
-			}
-		}
-		return false;
-	}
-
-	private void init() {
-		vars.stream().filter(Variable::isAssigned).forEach(variable ->
-						this.constraints.stream()
-										.filter(dBinaryConstraint -> dBinaryConstraint.concerns(variable))
-										.forEach(this::initRevise));
-	}
+  private void init() {
+    vars.stream().filter(Variable::isAssigned).forEach(variable ->
+            this.constraints.stream().filter(bc -> bc.concerns(variable)).forEach(this::initRevise));
+  }
 }

@@ -117,7 +117,7 @@ public class Sudoku extends BinaryCSP<Digit> {
 						getVar("I7"), getVar("I8"), getVar("I9"));
 		constraints.addAll(lcons);
 
-		System.out.println("There are " + constraints.size() + " binary constraints");
+		//System.out.println("There are " + constraints.size() + " binary constraints");
 		for (int i = 0; i < size; i++) {
 			for (int j = 0; j < size; j++) {
 				if (grid[i][j] != 0) {
@@ -125,9 +125,6 @@ public class Sudoku extends BinaryCSP<Digit> {
 				}
 			}
 		}
-
-		//System.out.println("constraints = " + constraints);
-		System.out.println(this);
 	}
 
 	public static String int2char(int i) {
@@ -242,7 +239,7 @@ public class Sudoku extends BinaryCSP<Digit> {
 	}
 
 	public static void testFull() {
-		List<int[][]> games = Sudoku.getGames("src/csp/sudokus.txt");
+		List<int[][]> games = Sudoku.getGames("src/csp/sudokus2.txt");
 		List<double[]> results = new ArrayList<>();
 		int nb = 1;
 		for (int[][] game : games) {
@@ -254,18 +251,23 @@ public class Sudoku extends BinaryCSP<Digit> {
 			sudoku = new Sudoku(game);
 			start = System.currentTimeMillis();
 
+      System.out.println("\nFORWARD CHECK IN PROGRESS");
 			if (!sudoku.forwardCheck())
 				System.out.println("failure fc!");
 
-			System.out.println("\n" + sudoku);
+      System.out.println("\n" + sudoku);
 
 			finish = System.currentTimeMillis();
 			res[0] = (finish - start);
 
 			sudoku = new Sudoku(game);
+
 			start = System.currentTimeMillis();
-			if (!sudoku.forwardCheckAC3())
+      System.out.println("\nFORWARD CHECK AC3 IN PROGRESS");
+      if (!sudoku.forwardCheckAC3())
 				System.out.println("failure!");
+
+			System.out.println("\n" + sudoku);
 			finish = System.currentTimeMillis();
 			res[1] = (finish - start);
 			results.add(res);

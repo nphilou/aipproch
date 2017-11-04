@@ -36,7 +36,7 @@ public class Variable<D> {
 	/**
 	 * boolean telling whether the variable has been assigned
 	 */
-	private boolean isAssigned;
+	boolean isAssigned;
 
 	/**
 	 * List of possible values for the variable: using propagation of constraints may reduce
@@ -144,7 +144,7 @@ public class Variable<D> {
 	 * reset the set of possible values.
 	 * It deletes all existing values and put back all values in the initial domain
 	 */
-	void resetPossibleValues() {
+	private void resetPossibleValues() {
 		possibleValues.clear();
 		possibleValues.addAll(domain);
 	}
