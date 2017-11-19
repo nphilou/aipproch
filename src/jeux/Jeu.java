@@ -294,14 +294,14 @@ public class Jeu {
 	}
 
 	public static void main(String[] args) {
-		int taille = 6;
+		int taille = 4;
 		int numGames = 1;
 
 
 		Joueur clavier = new JoueurClavier();
 		//Joueur random = new JoueurAleatoire(taille);
-		Joueur random = new JoueurClavier();
-		//Joueur minmax    = new MinMax(taille);
+		//Joueur random = new JoueurClavier();
+		Joueur random    = new MinMax(taille);
 		//Joueur alphabeta = new AlphaBeta(taille);
 		Jeu g = new Jeu(taille, true);
 
