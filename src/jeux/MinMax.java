@@ -6,16 +6,16 @@ import java.util.Vector;
 public class MinMax implements Joueur {
   private int role;
   private boolean libre[][];
-  private boolean memory[][];
   private int n;
   private Domino action;
+  private int depth;
+
 
   public MinMax(int taille) {
     n = taille;
     libre = new boolean[n][n];
-    memory = new boolean[n][n];
     reset();
-    memoryReset();
+    depth = 4;
   }
 
   public static void display(boolean[][] booleans) {
@@ -34,14 +34,14 @@ public class MinMax implements Joueur {
     if (role == Jeu.LIGNE) {
       for (int i = 0; i < n - 1; i++) {
         for (int j = 0; j < n; j++) {
-          if (memory[i][j] && memory[i + 1][j])
+          if (libre[i][j] && libre[i + 1][j])
             possibles.add(new Domino(i, j, i + 1, j));
         }
       }
     } else {
       for (int i = 0; i < n; i++) {
         for (int j = 0; j < n - 1; j++) {
-          if (memory[i][j] && memory[i][j + 1])
+          if (libre[i][j] && libre[i][j + 1])
             possibles.add(new Domino(i, j, i, j + 1));
         }
       }
@@ -54,18 +54,21 @@ public class MinMax implements Joueur {
   }
 
   public int max() {
+
     Domino action = new Domino(0,0,0,0);
     Vector<Domino> possibles = possibles(role);
-    if (possibles.size() == 0) return utility();
+    if (possibles.size() == 0 || (depth == 0)) return utility();
     int u = -(n * n);
     int temp;
     for (Domino domino : possibles) {
-      memoryUpdate(domino);
-      display(memory);
+      depth--;
+      update(domino);
+      //display(libre);
       if ((temp = min()) > u) {
         action = domino;
         u = temp;
       }
+      depth++;
       resetDomino(domino);
     }
     this.action = action;
@@ -74,23 +77,24 @@ public class MinMax implements Joueur {
 
   public int min() {
     Vector<Domino> possibles = possibles((role == Jeu.LIGNE ? Jeu.COLONNE : Jeu.LIGNE));
-    if (possibles.size() == 0) return utility();
+    if (possibles.size() == 0 || depth == 0) return utility();
     int u = n * n;
     int temp;
     for (Domino domino : possibles) {
-      memoryUpdate(domino);
-      display(memory);
+      depth--;
+      update(domino);
       if ((temp = max()) < u) {
         u = temp;
       }
+      depth++;
       resetDomino(domino);
     }
     return u;
   }
 
   public void resetDomino(Domino l) {
-    memory[l.a.i][l.a.j] = true;
-    memory[l.b.i][l.b.j] = true;
+    libre[l.a.i][l.a.j] = true;
+    libre[l.b.i][l.b.j] = true;
   }
 
   @Override
@@ -103,13 +107,6 @@ public class MinMax implements Joueur {
   public void update(Domino l) {
     libre[l.a.i][l.a.j] = false;
     libre[l.b.i][l.b.j] = false;
-
-    memoryUpdate(l);
-  }
-
-  public void memoryUpdate(Domino l) {
-    memory[l.a.i][l.a.j] = false;
-    memory[l.b.i][l.b.j] = false;
   }
 
   @Override
@@ -126,10 +123,5 @@ public class MinMax implements Joueur {
   public void reset() {
     for (int i = 0; i < n; i++)
       Arrays.fill(libre[i], true);
-  }
-
-  public void memoryReset() {
-    for (int i = 0; i < n; i++)
-      Arrays.fill(memory[i], true);
   }
 }
