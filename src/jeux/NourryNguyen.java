@@ -8,7 +8,6 @@ public class NourryNguyen implements Joueur {
 
 	int role;
 	boolean libre[][];
-	//boolean libreutc[][];
 	int n;
 
 	public NourryNguyen(int taille) {
@@ -40,7 +39,7 @@ public class NourryNguyen implements Joueur {
 
 		public String toString() {
 			return d.a.i + " " + d.a.j + " " + d.b.i + " " + d.b.j + "\n"
-							+ " vis=" + visited + " nbrofwin=" + nbrofwin + "father=" + father;
+					+ " vis=" + visited + " nbrofwin=" + nbrofwin;
 		}
 
 		public void addchild(Node node) {
@@ -58,13 +57,28 @@ public class NourryNguyen implements Joueur {
 			}
 		}
 
-		public Node nodeToVisit() {
+		public Node nodeToVisit(int it) {
 			if (children.isEmpty()) {
 				return null;
 			}
 			Node nodetovisit = children.get(0);
 			for (Node node : children) {
-				if ((node.nbrofwin / node.visited) > (nodetovisit.nbrofwin / nodetovisit.visited)) {
+				if ((/*(node.nbrofwin / node.visited)+*/Math.sqrt(Math.log(2*it/*node.father.visited*/)/node.visited)) >
+						(/*(nodetovisit.nbrofwin / nodetovisit.visited)+*/Math.sqrt(Math.log(2*it/*nodetovisit.father.visited*/)/nodetovisit.visited))) {
+					nodetovisit = node;
+				}
+			}
+			return nodetovisit;
+		}
+
+		public Node nodeToreturn() {
+			if (children.isEmpty()) {
+				return null;
+			}
+			Node nodetovisit = children.get(0);
+			for (Node node : children) {
+				if (((node.nbrofwin / node.visited) > (nodetovisit.nbrofwin / nodetovisit.visited))&&
+						((node.nbrofwin / node.visited)<1)){
 					nodetovisit = node;
 				}
 			}
@@ -76,7 +90,11 @@ public class NourryNguyen implements Joueur {
 
 		Node root = new Node(new Domino(0, 0, 0, 0));
 		Node courant = root;
-		int numiterations = 1000000;
+		int numiterations = 33333;
+		int dominocourant=0;
+
+
+		long start_time = System.currentTimeMillis();
 
 
 		JoueurAleatoire player = new JoueurAleatoire(n);
@@ -94,27 +112,59 @@ public class NourryNguyen implements Joueur {
 			System.err.println("NourryNguyen a perdu!");
 		}
 
-		for (Domino domino : possibles) {
+		for (Domino domino : possible(role)) {
 			Node child = new Node(domino);
 			child.setFather(root);
 			root.addchild(child);
 		}
 
 		for (int i = 0; i < numiterations; i++) {
-			while (courant.nodeToVisit() != null) {
-				courant = courant.nodeToVisit();
+			while (courant.nodeToVisit(i) != null) {
+				courant = courant.nodeToVisit(i);
 				dominosplayed.add(courant.getDomino());
 				update(courant.getDomino());
+				dominocourant++;
 			}
+			for (int j = 0; j < dominocourant; j++) {
+				if(!possible(opponent.role).isEmpty()){
+					Domino domino = opponent.joue();
+					update(domino);
+					dominosplayed.add(domino);
+				}
+				else{
+					dominotoplay = null;
+					while (courant.father != null) {
+						courant.increaseRatio(player.role);
+						courant = courant.father;
+					}
+					dominocourant=0;
+				}
+			}
+			dominocourant=0;
 
-			if (!possible(player.role).isEmpty()) {
-				Node child = new Node(player.joue());
-				child.setFather(courant);
-				courant.addchild(child);
-				update(courant.nodeToVisit().getDomino());
-				dominosplayed.add(courant.nodeToVisit().getDomino());
+			if (!possible(player.role).isEmpty() && (courant.nodeToVisit(i)==null)) {
+				for (Domino domi:possible(player.role)){
+					Node child = new Node(domi);
+					child.setFather(courant);
+					courant.addchild(child);
+
+				}
+
+				courant = courant.nodeToVisit(i);
+				update(courant.getDomino());
+				dominosplayed.add(courant.getDomino());
+            /*Node child = new Node(player.joue());
+            child.setFather(courant);
+            courant.addchild(child);
+            update(courant.nodeToVisit().getDomino());
+            dominosplayed.add(courant.nodeToVisit().getDomino());*/
 			} else {
+
 				dominotoplay = null;
+				while (courant.father != null) {
+					courant.increaseRatio(opponent.role);
+					courant = courant.father;
+				}
 			}
 
 			Joueur joueur = player;
@@ -129,30 +179,8 @@ public class NourryNguyen implements Joueur {
 
 			winner = !possible(player.role).isEmpty() ? role : opponent.role;
 
-			/*while (dominotoplay != null) {
-				if (!possible(player.role).isEmpty()) {
-					dominotoplay = player.joue();
-					winner = player.role;
-					dominosplayed.add(dominotoplay);
-					update(dominotoplay);
-				} else {
-					dominotoplay = null;
-				}
-
-				if (dominotoplay != null) {
-					if (!possible(opponent.role).isEmpty()) {
-						dominotoplay = opponent.joue();
-						winner = opponent.role;
-						dominosplayed.add(dominotoplay);
-						update(dominotoplay);
-					} else {
-						dominotoplay = null;
-					}
-
-				}
-			}*/
 			if (dominotoplay != null) {
-				courant = courant.nodeToVisit();
+
 				while (courant.father != null) {
 					courant.increaseRatio(winner);
 					courant = courant.father;
@@ -162,14 +190,14 @@ public class NourryNguyen implements Joueur {
 					courant = courant.father;
 				}
 			}
-
 			for (Domino dom : dominosplayed) {
 				clean(dom);
 			}
 			dominosplayed.clear();
 		}
-
-		return courant.nodeToVisit().getDomino();
+		long end_time = System.currentTimeMillis();
+		System.out.println(end_time-start_time);
+		return courant.nodeToreturn().getDomino();
 	}
 
 	public void update(Domino l) {
