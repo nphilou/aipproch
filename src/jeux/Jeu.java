@@ -297,12 +297,12 @@ public class Jeu {
 		int taille = 8;
 		int numGames = 1;
 
-
-		Joueur clavier = new JoueurClavier();
+		//Joueur clavier = new JoueurClavier();
 		//Joueur random = new JoueurAleatoire(taille);
-		Joueur random = new JoueurClavier();
+		//Joueur random = new JoueurClavier();
 		//Joueur random    = new MinMax(taille);
-		//Joueur random = new AlphaBeta(taille);
+		Joueur clavier = new NourryNguyen(taille);
+		Joueur random = new AlphaBeta(taille);
 		Jeu g = new Jeu(taille, true);
 
 		g.ligne = clavier;

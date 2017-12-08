@@ -108,7 +108,7 @@ public class AlphaBeta implements Joueur {
 
 	@Override
 	public String getName() {
-		return "MinMax";
+		return "AlphaBeta";
 	}
 
 	@Override

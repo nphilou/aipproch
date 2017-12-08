@@ -4,236 +4,216 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class NourryNguyen implements Joueur{
+public class NourryNguyen implements Joueur {
 
-    int role;
-    boolean libre[][];
-    //boolean libreutc[][];
-    int n;
+	int role;
+	boolean libre[][];
+	//boolean libreutc[][];
+	int n;
 
-    public NourryNguyen(int taille){
-        n=taille;
-        libre = new boolean[n][n];
-        for (int i=0;i<n;i++)
-            for (int j=0;j<n;j++)
-                libre[i][j]=true;
-    }
+	public NourryNguyen(int taille) {
+		n = taille;
+		libre = new boolean[n][n];
+		for (int i = 0; i < n; i++)
+			for (int j = 0; j < n; j++)
+				libre[i][j] = true;
+	}
 
-    public class Node{
-        Domino d;
-        double visited;
-        double nbrofwin;
-        Node father;
-        List<Node> children;
+	public class Node {
+		public void setFather(Node father) {
+			this.father = father;
+		}
 
-        public Node(Node node,Domino d){
-            this.d=d;
-            visited=1;
-            nbrofwin=1;
-            father=node;
-            children=new ArrayList<Node>();
-        }
+		Domino d;
+		double visited;
+		double nbrofwin;
+		Node father;
+		List<Node> children;
 
-        public String toString() {
-            return d.a.i+" "+d.a.j+" "+d.b.i+" "+d.b.j+"\n"
-                    +" vis="+visited+" nbrofwin="+nbrofwin+"father="+father;
-        }
+		public Node(Domino d) {
+			this.d = d;
+			visited = 1;
+			nbrofwin = 1;
+			father = null;
+			children = new ArrayList<Node>();
+		}
 
-        public void addchild(Node node){
-            children.add(node);
-        }
+		public String toString() {
+			return d.a.i + " " + d.a.j + " " + d.b.i + " " + d.b.j + "\n"
+							+ " vis=" + visited + " nbrofwin=" + nbrofwin + "father=" + father;
+		}
 
-        public Domino getDomino(){
-            return d;
-        }
+		public void addchild(Node node) {
+			children.add(node);
+		}
 
-        public void increaseRatio(int win){
-            visited++;
-            if(win==role){
-                nbrofwin++;
-            }
-        }
+		public Domino getDomino() {
+			return d;
+		}
 
-        public Node nodeToVisit(){
-            if(children.isEmpty()){
-                return null;
-            }
-            Node nodetovisit=children.get(0);
-            for (Node node: children) {
-                if((node.nbrofwin/node.visited)>(nodetovisit.nbrofwin/nodetovisit.visited)){
-                    nodetovisit=node;
-                }
-            }
-            return nodetovisit;
-        }
-    }
+		public void increaseRatio(int win) {
+			visited++;
+			if (win == role) {
+				nbrofwin++;
+			}
+		}
 
-    public Domino joue() {
+		public Node nodeToVisit() {
+			if (children.isEmpty()) {
+				return null;
+			}
+			Node nodetovisit = children.get(0);
+			for (Node node : children) {
+				if ((node.nbrofwin / node.visited) > (nodetovisit.nbrofwin / nodetovisit.visited)) {
+					nodetovisit = node;
+				}
+			}
+			return nodetovisit;
+		}
+	}
 
-        Node root=new Node(null,new Domino(0,0,0,0));
-        Node courant=root;
-        int numiterations=100;
+	public Domino joue() {
 
-
-        JoueurAleatoire player=new JoueurAleatoire(n);
-        player.libre=libre;
-        JoueurAleatoire opponent=new JoueurAleatoire(n);
-        opponent.libre=libre;
-        player.role=role;
-        opponent.role=(role+1)%2;
-        List<Domino> dominosplayed=new ArrayList<Domino>();
-        int winner=0;
-        Domino dominotoplay=new Domino(0,0,0,0);
-
-        List<Domino> possibles = possible(role);
-        if (possibles.size()==0){
-            System.err.println("NourryNguyen a perdu!");
-        }
-
-        for (Domino domino : possibles) {
-            root.addchild(new Node(root,domino));
-        }
-
-        for (int i = 0; i < numiterations; i++) {
-            while(courant.nodeToVisit()!=null){//plays
-
-                courant=courant.nodeToVisit();
-                dominosplayed.add(courant.getDomino());
-                update(courant.getDomino());
-                //player.update(courant.getDomino());
-                //opponent.update(courant.getDomino());
-                /*dominotoplay=opponent.joue(); opponent dont play for now, have to after
-                updateutc(dominotoplay);
-                player.update(dominotoplay);
-                opponent.update(dominotoplay);*/
-
-            }
-
-            //System.out.println(possible(player.role));
-            if(!possible(player.role).isEmpty()) {
-                courant.addchild(new Node(courant, player.joue()));
-                update(courant.nodeToVisit().getDomino());//move here
-                dominosplayed.add(courant.nodeToVisit().getDomino());
-            }
-            else{
-                dominotoplay=null;
-            }
+		Node root = new Node(new Domino(0, 0, 0, 0));
+		Node courant = root;
+		int numiterations = 1000000;
 
 
-            /*for (int j = 0; j < n; j++) {
-                for (int k = 0; k < n; k++) {
-                    System.out.print(libreutc[j][k]+" ");
-                }
-                System.out.println();
-            }
-            player.libre[courant.nodeToVisit().getDomino().get_a().get_x()][courant.nodeToVisit().getDomino().get_a().get_y()]=false;
-            for (int j = 0; j < n; j++) {
-                for (int k = 0; k < n; k++) {
-                    System.out.print(libreutc[j][k]+" ");
-                }
-                System.out.println();
-            }
-            opponent.libre[courant.nodeToVisit().getDomino().get_b().get_x()][courant.nodeToVisit().getDomino().get_b().get_y()]=false;*/
-            //player.update(courant.nodeToVisit().getDomino());
-            //opponent.update(courant.nodeToVisit().getDomino());
+		JoueurAleatoire player = new JoueurAleatoire(n);
+		player.libre = libre;
+		JoueurAleatoire opponent = new JoueurAleatoire(n);
+		opponent.libre = libre;
+		player.role = role;
+		opponent.role = (role + 1) % 2;
+		List<Domino> dominosplayed = new ArrayList<Domino>();
+		int winner = 0;
+		Domino dominotoplay = new Domino(0, 0, 0, 0);
 
-            while(dominotoplay!=null){//avec possibes
-                if(!possible(player.role).isEmpty()){
-                    dominotoplay=player.joue();
-                    winner=player.role;
-                    dominosplayed.add(dominotoplay);
-                    update(dominotoplay);
-                    //player.update(dominotoplay);
-                    //opponent.update(dominotoplay);
-                    /*player.libre[dominotoplay.get_a().get_x()][dominotoplay.get_a().get_y()]=false;
-                    opponent.libre[dominotoplay.get_b().get_x()][dominotoplay.get_b().get_y()]=false;*/
-                }
-                else{
-                    dominotoplay=null;
-                }
+		List<Domino> possibles = possible(role);
+		if (possibles.size() == 0) {
+			System.err.println("NourryNguyen a perdu!");
+		}
 
-                if(dominotoplay!=null){
-                    if(!possible(opponent.role).isEmpty()){
-                        dominotoplay=opponent.joue();
-                        winner=opponent.role;
-                        dominosplayed.add(dominotoplay);
-                        update(dominotoplay);
-                        //player.update(dominotoplay);
-                        //opponent.update(dominotoplay);
-                        /*player.libre[dominotoplay.get_a().get_x()][dominotoplay.get_a().get_y()]=false;
-                        opponent.libre[dominotoplay.get_b().get_x()][dominotoplay.get_b().get_y()]=false;*/
-                    }
-                    else{
-                        dominotoplay=null;
-                    }
+		for (Domino domino : possibles) {
+			Node child = new Node(domino);
+			child.setFather(root);
+			root.addchild(child);
+		}
 
-                }
-            }
-            dominotoplay=new Domino(0,0,0,0);
+		for (int i = 0; i < numiterations; i++) {
+			while (courant.nodeToVisit() != null) {
+				courant = courant.nodeToVisit();
+				dominosplayed.add(courant.getDomino());
+				update(courant.getDomino());
+			}
 
-            courant=courant.nodeToVisit();
-            while(courant.father!=null){
-                System.out.println(courant);
-                courant.increaseRatio(winner);
-                courant=courant.father;
-                System.out.println("apres"+courant);
-            }
+			if (!possible(player.role).isEmpty()) {
+				Node child = new Node(player.joue());
+				child.setFather(courant);
+				courant.addchild(child);
+				update(courant.nodeToVisit().getDomino());
+				dominosplayed.add(courant.nodeToVisit().getDomino());
+			} else {
+				dominotoplay = null;
+			}
 
-            //libreutc=libre.clone();
-            //player.libre=libre.clone();
-            //opponent.libre=libre.clone();
-            for (Domino dom : dominosplayed) {
-                clean(dom);
-            }
-            dominosplayed.clear();
-        }//end iterations
+			Joueur joueur = player;
 
-        return courant.nodeToVisit().getDomino();
-    }
+			while (!possible(player.role).isEmpty() && !possible(opponent.role).isEmpty()) {
+				dominotoplay = joueur.joue();
+				dominosplayed.add(dominotoplay);
+				update(dominotoplay);
 
-    public void update(Domino l) {
-        libre[l.a.i][l.a.j]=false;
-        libre[l.b.i][l.b.j]=false;
-    }
+				joueur = joueur == player ? opponent : player;
+			}
 
-    public void clean(Domino l){
-        libre[l.a.i][l.a.j]=true;
-        libre[l.b.i][l.b.j]=true;
-    }
+			winner = !possible(player.role).isEmpty() ? role : opponent.role;
 
-    public List<Domino> possible(int role){
-        List<Domino> possible=new ArrayList<Domino>();
-        if(role==0){
-            for (int i=0;i<n;i++){
-                for (int j=0;j<n-1;j++){
-                    if (libre[i][j] && libre[i][j+1])
-                        possible.add(new Domino(i,j,i,j+1));
-                }
-            }
-        }
-        else{
-            for (int i=0;i<n-1;i++){
-                for (int j=0;j<n;j++){
-                    if (libre[i][j] && libre[i+1][j])
-                        possible.add(new Domino(i,j,i+1,j));
-                }
-            }
-        }
-        return possible;
-    }
+			/*while (dominotoplay != null) {
+				if (!possible(player.role).isEmpty()) {
+					dominotoplay = player.joue();
+					winner = player.role;
+					dominosplayed.add(dominotoplay);
+					update(dominotoplay);
+				} else {
+					dominotoplay = null;
+				}
+
+				if (dominotoplay != null) {
+					if (!possible(opponent.role).isEmpty()) {
+						dominotoplay = opponent.joue();
+						winner = opponent.role;
+						dominosplayed.add(dominotoplay);
+						update(dominotoplay);
+					} else {
+						dominotoplay = null;
+					}
+
+				}
+			}*/
+			if (dominotoplay != null) {
+				courant = courant.nodeToVisit();
+				while (courant.father != null) {
+					courant.increaseRatio(winner);
+					courant = courant.father;
+				}
+			} else {
+				while (courant.father != null) {
+					courant = courant.father;
+				}
+			}
+
+			for (Domino dom : dominosplayed) {
+				clean(dom);
+			}
+			dominosplayed.clear();
+		}
+
+		return courant.nodeToVisit().getDomino();
+	}
+
+	public void update(Domino l) {
+		libre[l.a.i][l.a.j] = false;
+		libre[l.b.i][l.b.j] = false;
+	}
+
+	public void clean(Domino l) {
+		libre[l.a.i][l.a.j] = true;
+		libre[l.b.i][l.b.j] = true;
+	}
+
+	public List<Domino> possible(int role) {
+		List<Domino> possible = new ArrayList<Domino>();
+		if (role == 0) {
+			for (int i = 0; i < n; i++) {
+				for (int j = 0; j < n - 1; j++) {
+					if (libre[i][j] && libre[i][j + 1])
+						possible.add(new Domino(i, j, i, j + 1));
+				}
+			}
+		} else {
+			for (int i = 0; i < n - 1; i++) {
+				for (int j = 0; j < n; j++) {
+					if (libre[i][j] && libre[i + 1][j])
+						possible.add(new Domino(i, j, i + 1, j));
+				}
+			}
+		}
+		return possible;
+	}
 
 
-    public void setRole(int direction) {
-        role = direction;
-    }
+	public void setRole(int direction) {
+		role = direction;
+	}
 
-    public String getName() {
-        return "NourryNguyen";
-    }
+	public String getName() {
+		return "NourryNguyen";
+	}
 
-    public void reset() {
-        for (int i=0;i<n;i++)
-            for (int j=0;j<n;j++)
-                libre[i][j]=true;
-    }
+	public void reset() {
+		for (int i = 0; i < n; i++)
+			for (int j = 0; j < n; j++)
+				libre[i][j] = true;
+	}
 }
