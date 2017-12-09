@@ -295,7 +295,7 @@ public class Jeu {
 
 	public static void main(String[] args) {
 		int taille = 8;
-		int numGames = 1;
+		int numGames = 5;
 
 		//Joueur clavier = new JoueurClavier();
 		//Joueur random = new JoueurAleatoire(taille);

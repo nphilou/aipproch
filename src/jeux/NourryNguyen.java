@@ -62,7 +62,9 @@ public class NourryNguyen implements Joueur {
 				return null;
 			}
 			Node nodetovisit = children.get(0);
+
 			for (Node node : children) {
+				//System.out.println(Math.sqrt(Math.log(2*it/*node.father.visited*/)/node.visited));
 				if ((/*(node.nbrofwin / node.visited)+*/Math.sqrt(Math.log(2*it/*node.father.visited*/)/node.visited)) >
 						(/*(nodetovisit.nbrofwin / nodetovisit.visited)+*/Math.sqrt(Math.log(2*it/*nodetovisit.father.visited*/)/nodetovisit.visited))) {
 					nodetovisit = node;
@@ -93,9 +95,7 @@ public class NourryNguyen implements Joueur {
 		int numiterations = 33333;
 		int dominocourant=0;
 
-
 		long start_time = System.currentTimeMillis();
-
 
 		JoueurAleatoire player = new JoueurAleatoire(n);
 		player.libre = libre;
@@ -117,8 +117,9 @@ public class NourryNguyen implements Joueur {
 			child.setFather(root);
 			root.addchild(child);
 		}
+		int i=0;
 
-		for (int i = 0; i < numiterations; i++) {
+		while(/*(i<numiterations)&&*/((System.currentTimeMillis()-start_time)<2500)){
 			while (courant.nodeToVisit(i) != null) {
 				courant = courant.nodeToVisit(i);
 				dominosplayed.add(courant.getDomino());
@@ -153,11 +154,6 @@ public class NourryNguyen implements Joueur {
 				courant = courant.nodeToVisit(i);
 				update(courant.getDomino());
 				dominosplayed.add(courant.getDomino());
-            /*Node child = new Node(player.joue());
-            child.setFather(courant);
-            courant.addchild(child);
-            update(courant.nodeToVisit().getDomino());
-            dominosplayed.add(courant.nodeToVisit().getDomino());*/
 			} else {
 
 				dominotoplay = null;
@@ -168,7 +164,6 @@ public class NourryNguyen implements Joueur {
 			}
 
 			Joueur joueur = player;
-
 			while (!possible(player.role).isEmpty() && !possible(opponent.role).isEmpty()) {
 				dominotoplay = joueur.joue();
 				dominosplayed.add(dominotoplay);
@@ -194,6 +189,7 @@ public class NourryNguyen implements Joueur {
 				clean(dom);
 			}
 			dominosplayed.clear();
+			i++;
 		}
 		long end_time = System.currentTimeMillis();
 		System.out.println(end_time-start_time);
